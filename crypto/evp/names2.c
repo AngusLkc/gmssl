@@ -35,3 +35,35 @@ const EVP_MD *EVP_get_default_digest(void)
 	return NULL;
 #endif
 }
+
+static void cipher_name_len(const EVP_CIPHER *cipher, const char *from,
+	const char *to, void *x)
+{
+	*((int *)x) += strlen(EVP_CIPHER_name(cipher));
+}
+
+static void cipher_name(const EVP_CIPHER *cipher, const char *from,
+	const char *to, void *x)
+{
+	strcat((char *)x, EVP_CIPHER_name(cipher));
+}
+
+char *EVP_get_ciphernames(int aliases)
+{
+	char *ret = NULL;
+	int len = 0;
+	EVP_CIPHER_do_all_sorted(cipher_name_len, &len);
+
+	ret = OPENSSL_zalloc(len);
+	if (!ret) {
+		return NULL;
+	}
+
+	EVP_CIPHER_do_all_sorted(cipher_name, ret);
+	return ret;
+}
+
+char *EVP_get_digestnames(int aliases)
+{
+	return "sm3:sha1:sha256";
+}
